@@ -16,5 +16,5 @@ public interface IEventStoreProvider
     /// <param name="name">The stream name.</param>
     /// <param name="id">The stream identifier.</param>
     /// <returns>The event stream.</returns>
-    IEventStore GetStream(string name, string id);
+    IEventStore GetStore(string name, string id);
 }

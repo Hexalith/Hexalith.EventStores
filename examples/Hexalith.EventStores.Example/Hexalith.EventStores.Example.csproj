@@ -6,6 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Hexalith.KeyValueStorages.Files" />
+    <PackageReference Include="Hexalith.PolymorphicSerializations" />
+    <PackageReference Include="Hexalith.PolymorphicSerializations.CodeGenerators" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Hexalith.EventStores\Hexalith.EventStores.csproj" />
   </ItemGroup>
 

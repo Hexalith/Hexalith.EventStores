@@ -4,9 +4,11 @@
     <HexalithPackagesProps>$([MSBuild]::GetDirectoryNameOfFileAbove('Hexalith.Builds', 'Props/Directory.Packages.props'))</HexalithPackagesProps>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Hexalith.Commons.Metadatas" Version="1.66.3" />
-    <PackageVersion Include="Hexalith.KeyValueStorages.Abstractions" Version="1.6.0" />
+    <PackageVersion Include="Hexalith.Commons.Metadatas" Version="1.66.4" />
+    <PackageVersion Include="Hexalith.KeyValueStorages.Abstractions" Version="2.0.1" />
+    <PackageVersion Include="Hexalith.KeyValueStorages.Files" Version="2.0.1" />
     <PackageVersion Include="Hexalith.PolymorphicSerializations" Version="1.6.2" />
+    <PackageVersion Include="Hexalith.PolymorphicSerializations.CodeGenerators" Version="1.6.2" />
   </ItemGroup>
   <!-- Import the parent Directory.Packages.props file if it exists -->
   <Import Project="$(ParentDirectoryPackages)" Condition="Exists('$(ParentDirectoryPackages)')" />

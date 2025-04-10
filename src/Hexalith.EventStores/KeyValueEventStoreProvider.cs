@@ -22,7 +22,7 @@ public class KeyValueEventStoreProvider : IEventStoreProvider
     }
 
     /// <inheritdoc/>
-    public IEventStore GetStream(string name, string id)
+    public IEventStore GetStore(string name, string id)
         => new KeyValueEventStore(_storage.Create<long, EventState>(name, id));
 
     public IEventStore GetStream(Metadata metadata)

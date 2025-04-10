@@ -7,6 +7,7 @@
     <PackageTags>hexalith;EventStores;</PackageTags>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Hexalith.Commons.Metadatas" />
     <PackageReference Include="Hexalith.KeyValueStorages.Abstractions" />
   </ItemGroup>
   <ItemGroup>
