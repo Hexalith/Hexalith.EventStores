@@ -1,11 +1,11 @@
 {
-  "name": "hexalith-mynewpackage",
+  "name": "hexalith-EventStores",
   "version": "0.0.0-development",
   "private": true,
-  "description": "Hexalith MyNewPackage libraries",
+  "description": "Hexalith EventStores libraries",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Hexalith/Hexalith.MyNewPackage.git"
+    "url": "https://github.com/Hexalith/Hexalith.EventStores.git"
   },
   "release": {
     "branches": [ "main" ]
