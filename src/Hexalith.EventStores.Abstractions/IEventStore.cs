@@ -8,7 +8,7 @@ namespace Hexalith.EventStores;
 /// <summary>
 /// Persisted event store stream interface.
 /// </summary>
-public interface IEventStore : IAsyncDisposable
+public interface IEventStore
 {
     /// <summary>
     /// Add new items to the event stream.
@@ -17,15 +17,6 @@ public interface IEventStore : IAsyncDisposable
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The new stream version.</returns>
     Task<long> AddAsync(IEnumerable<EventMessage> items, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Add new items to the event stream and verify the version.
-    /// </summary>
-    /// <param name="items">The items to add.</param>
-    /// <param name="expectedVersion">The expected stream version.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The new stream version.</returns>
-    Task<long> AddAsync(IEnumerable<EventMessage> items, long expectedVersion, CancellationToken cancellationToken);
 
     /// <summary>
     /// Clear the snapshot of the event stream at a specific version.
@@ -81,6 +72,26 @@ public interface IEventStore : IAsyncDisposable
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>Returns the version of the last snapshot.</returns>
     Task<long> LastSnapshotVersionAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Opens the event store with a default session timeout and open timeout.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    Task OpenAsync(CancellationToken cancellationToken)
+        => OpenAsync(
+            TimeSpan.FromMinutes(1),
+            TimeSpan.FromSeconds(5),
+            cancellationToken);
+
+    /// <summary>
+    /// Opens the event store with specified session timeout and open timeout.
+    /// </summary>
+    /// <param name="sessionTimeout">The session timeout duration.</param>
+    /// <param name="openTimeout">The open timeout duration.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    Task OpenAsync(TimeSpan sessionTimeout, TimeSpan openTimeout, CancellationToken cancellationToken);
 
     /// <summary>
     /// Take snapshots of the event stream at regular intervals. Sets a snapshot of the event stream to avoid replaying all events. The application is responsible for managing the snapshot.

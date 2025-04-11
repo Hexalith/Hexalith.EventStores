@@ -6,7 +6,9 @@
 namespace Hexalith.EventStores;
 
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 
 using Hexalith.Commons.Metadatas;
 using Hexalith.KeyValueStorages;
@@ -16,6 +18,7 @@ using Hexalith.KeyValueStorages;
 /// </summary>
 public class KeyValueEventStoreProvider : IEventStoreProvider
 {
+    private static readonly ConcurrentDictionary<string, Lock> _locks = new();
     private readonly IKeyValueProvider _storage;
 
     /// <summary>
@@ -37,7 +40,7 @@ public class KeyValueEventStoreProvider : IEventStoreProvider
     /// <param name="id">The entity identifier.</param>
     /// <returns>An instance of <see cref="IEventStore"/>.</returns>
     public IEventStore GetStore(string database, string name, string id)
-        => new KeyValueEventStore(_storage.Create<long, EventState>(database, name, id));
+        => new KeyValueEventStore(_storage.Create<long, EventState>(database, name, id, GetLock(database, name, id)));
 
     /// <inheritdoc/>
     public IEventStore GetStore(string name, string id)
@@ -53,4 +56,19 @@ public class KeyValueEventStoreProvider : IEventStoreProvider
             metadata.Context.PartitionId,
             metadata.Message.Domain.Name,
             metadata.Message.Domain.Id));
+    }
+
+    private Lock GetLock(string database, string container, string entity)
+    {
+        string lockId = $"{entity}/{container}/{database}";
+        if (_locks.TryGetValue(lockId, out Lock? lockInfo))
+        {
+            if (lockInfo.Expiration > DateTimeOffset.UtcNow)
+            {
+                lockInfo.Lock.Exit();
+            }
+        }
+
+        _locks[lockId] = (new Lock(), DateTimeOffset.UtcNow.Add(_timeout));
+    }
 }
