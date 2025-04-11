@@ -7,11 +7,9 @@ namespace Hexalith.EventStores.Tests;
 
 using System.Collections.Generic;
 
-using Hexalith.Commons.Metadatas;
 using Hexalith.EventStores;
 using Hexalith.EventStores.Exceptions;
 using Hexalith.KeyValueStorages;
-using Hexalith.PolymorphicSerializations;
 
 using Moq;
 
@@ -38,9 +36,9 @@ public class KeyValueEventStoreTests
             .Setup(s => s.ExistsAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((long v, CancellationToken _) => v <= 2);
 
-        eventStore
+        _ = eventStore
             .Setup(s => s.AddAsync(It.IsAny<long>(), It.IsAny<EventState>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+            .ReturnsAsync("123");
 
         var snapshotStore = new Mock<IKeyValueStore<long, EventState>>();
         var snapshotCollectionStore = new Mock<IKeyValueStore<string, State<IEnumerable<long>>>>();
@@ -326,7 +324,7 @@ public class KeyValueEventStoreTests
         EventMessage event1 = CreateEventMessage(1);
         EventMessage event2 = CreateEventMessage(2);
         EventMessage event3 = CreateEventMessage(3);
-        EventMessage snapshotEvent = CreateEventMessage(2, isSnapshot: true);
+        EventMessage snapshotEvent = CreateEventMessage(2, true);
 
         _ = eventStore
             .Setup(s => s.GetAsync(1, It.IsAny<CancellationToken>()))
@@ -341,9 +339,9 @@ public class KeyValueEventStoreTests
             .ReturnsAsync(new EventState(event3));
 
         var snapshotStore = new Mock<IKeyValueStore<long, EventState>>();
-        snapshotStore
+        _ = snapshotStore
             .Setup(s => s.AddOrUpdateAsync(2, It.IsAny<EventState>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+            .ReturnsAsync("123");
 
         _ = snapshotStore
             .Setup(s => s.GetAsync(2, It.IsAny<CancellationToken>()))
@@ -356,9 +354,9 @@ public class KeyValueEventStoreTests
             .Setup(s => s.TryGetAsync("Versions", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new State<IEnumerable<long>>(snapshotVersions, null, null));
 
-        snapshotCollectionStore
+        _ = snapshotCollectionStore
             .Setup(s => s.SetAsync(It.IsAny<string>(), It.IsAny<State<IEnumerable<long>>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+            .ReturnsAsync("123");
 
         var store = new KeyValueEventStore(
             eventStore.Object,
@@ -392,26 +390,12 @@ public class KeyValueEventStoreTests
     /// Creates a test event message.
     /// </summary>
     /// <param name="version">The version of the event.</param>
-    /// <param name="isSnapshot">Indicates whether this is a snapshot event.</param>
+    /// <param name="snapshot">Indicates if the event is used as a snapshot.</param>
     /// <returns>A test event message.</returns>
-    private static EventMessage CreateEventMessage(long version, bool isSnapshot = false)
+    private static EventMessage CreateEventMessage(long version, bool snapshot = false)
     {
-        var metadata = new Metadata(
-            new MessageMetadata(
-                "TestName",
-                "TestId",
-                id: "TestMessage" + version,
-                name: "TestMessage",
-                version: "1.0"),
-            new ContextMetadata(
-                sequenceNumber: version,
-                partitionId: "TestPartition"));
-            
-        return new EventMessage(
-            new Polymorphic(
-                nameof(TestEvent),
-                new TestEvent { Id = $"Event{version}", IsSnapshot = isSnapshot }),
-            metadata);
+        var ev = new TestMessage($"EV{version}", $"The event number {version}", snapshot);
+        return ev.CreateMessage(version);
     }
 
     /// <summary>
@@ -440,21 +424,5 @@ public class KeyValueEventStoreTests
     {
         /// <inheritdoc/>
         public override DateTimeOffset GetUtcNow() => currentTime;
-    }
-
-    /// <summary>
-    /// A test event class for use in tests.
-    /// </summary>
-    private class TestEvent
-    {
-        /// <summary>
-        /// Gets or sets the identifier of the event.
-        /// </summary>
-        public string Id { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether this is a snapshot event.
-        /// </summary>
-        public bool IsSnapshot { get; set; }
     }
 }

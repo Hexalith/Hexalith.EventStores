@@ -5,7 +5,6 @@
 
 namespace Hexalith.EventStores.Tests;
 
-using Hexalith.Commons.Metadatas;
 using Hexalith.EventStores.Configurations;
 using Hexalith.KeyValueStorages;
 
@@ -123,18 +122,11 @@ public class KeyValueEventStoreProviderTests
 
         var provider = new KeyValueEventStoreProvider(options, storageProvider.Object, null);
 
-        var metadata = new Metadata(
-            new MessageMetadata(
-                "TestDomain",
-                "TestDomainId",
-                id: "TestMessage",
-                name: "TestMessage",
-                version: "1.0"),
-            new ContextMetadata(
-                partitionId: "TestPartition"));
+        var ev = new TestMessage("123", "Test Message 123", false);
+        EventMessage eventMessage = ev.CreateMessage();
 
         // Act
-        IEventStore store = await provider.OpenStoreAsync(metadata, CancellationToken.None);
+        IEventStore store = await provider.OpenStoreAsync(eventMessage.Metadata, CancellationToken.None);
 
         // Assert
         _ = store.ShouldNotBeNull();
