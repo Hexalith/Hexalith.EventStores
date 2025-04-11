@@ -8,6 +8,7 @@
     <RootNamespace>Hexalith.EventStores</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Hexalith.Commons.Configurations" />
     <PackageReference Include="Hexalith.Commons.Metadatas" />
     <PackageReference Include="Hexalith.PolymorphicSerializations" />
   </ItemGroup>

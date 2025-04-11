@@ -103,6 +103,16 @@ public class KeyValueEventStore : IEventStore, IDisposable, IAsyncDisposable
     }
 
     /// <inheritdoc/>
+    public void Close()
+    {
+        if (!string.IsNullOrEmpty(_sessionId))
+        {
+            _ = _storeLocks.TryRemove(StoreId, out _);
+            _sessionId = null;
+        }
+    }
+
+    /// <inheritdoc/>
     public void Dispose()
     {
         Dispose(true);
@@ -202,7 +212,7 @@ public class KeyValueEventStore : IEventStore, IDisposable, IAsyncDisposable
                 throw new OpenStoreFailedException(StoreId, sessionTimeout);
             }
 
-            await Task.Delay(retryWait);
+            await Task.Delay(retryWait, cancellationToken);
             totalWait += retryWait;
             retryWait += TimeSpan.FromMilliseconds(1);
         }
@@ -319,11 +329,7 @@ public class KeyValueEventStore : IEventStore, IDisposable, IAsyncDisposable
                 snapshotCollectionStore.Dispose();
             }
 
-            // Release the lock on the store if we have a session
-            if (!string.IsNullOrEmpty(_sessionId) && !string.IsNullOrEmpty(StoreId))
-            {
-                _ = _storeLocks.TryRemove(StoreId, out _);
-            }
+            Close();
         }
 
         _disposed = true;

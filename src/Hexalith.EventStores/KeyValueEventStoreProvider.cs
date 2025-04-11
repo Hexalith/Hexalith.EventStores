@@ -6,69 +6,102 @@
 namespace Hexalith.EventStores;
 
 using System;
-using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
+using Hexalith.Commons.Configurations;
 using Hexalith.Commons.Metadatas;
+using Hexalith.EventStores.Configurations;
 using Hexalith.KeyValueStorages;
+
+using Microsoft.Extensions.Options;
 
 /// <summary>
 /// Provides an implementation of <see cref="IEventStoreProvider"/> that uses a key-value storage provider.
 /// </summary>
 public class KeyValueEventStoreProvider : IEventStoreProvider
 {
-    private static readonly ConcurrentDictionary<string, Lock> _locks = new();
+    private const string _snapshotIndexSuffix = "__Snapshot_Index";
+    private const string _snapshotSuffix = "__Snapshot";
+    private readonly string _defaultDatabase;
+    private readonly TimeSpan _openTimeout;
+    private readonly TimeSpan _sessionTimeout;
     private readonly IKeyValueProvider _storage;
+    private readonly TimeProvider? _timeProvider;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="KeyValueEventStoreProvider"/> class.
+    /// </summary>
+    /// <param name="options">The options for the event store settings.</param>
+    /// <param name="storage">The key-value storage provider.</param>
+    /// <param name="timeProvider">The time provider for generating timestamps.</param>
+    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="storage"/> is null.</exception>
+    public KeyValueEventStoreProvider([NotNull] IOptions<EventStoreSettings> options, [NotNull] IKeyValueProvider storage, TimeProvider? timeProvider)
+    {
+        ArgumentNullException.ThrowIfNull(storage);
+        ArgumentNullException.ThrowIfNull(options);
+        SettingsException<EventStoreSettings>.ThrowIfUndefined(options.Value.DefaultOpenTimeout);
+        SettingsException<EventStoreSettings>.ThrowIfUndefined(options.Value.DefaultSessionTimeout);
+        SettingsException<EventStoreSettings>.ThrowIfUndefined(options.Value.DefaultDatabase);
+        _storage = storage;
+        _timeProvider = timeProvider ?? TimeProvider.System;
+        _openTimeout = options.Value.DefaultOpenTimeout;
+        _sessionTimeout = options.Value.DefaultSessionTimeout;
+        _defaultDatabase = options.Value.DefaultDatabase;
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="KeyValueEventStoreProvider"/> class.
     /// </summary>
     /// <param name="storage">The key-value storage provider.</param>
-    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="storage"/> is null.</exception>
-    public KeyValueEventStoreProvider([NotNull] IKeyValueProvider storage)
+    /// <param name="timeProvider">The time provider for generating timestamps.</param>
+    public KeyValueEventStoreProvider([NotNull] IKeyValueProvider storage, TimeProvider? timeProvider = null)
+        : this(new OptionsWrapper<EventStoreSettings>(new EventStoreSettings()), storage, timeProvider)
     {
-        ArgumentNullException.ThrowIfNull(storage);
-        _storage = storage;
     }
-
-    /// <summary>
-    /// Gets an event store for the specified database, name, and identifier.
-    /// </summary>
-    /// <param name="database">The database name.</param>
-    /// <param name="name">The container name.</param>
-    /// <param name="id">The entity identifier.</param>
-    /// <returns>An instance of <see cref="IEventStore"/>.</returns>
-    public IEventStore GetStore(string database, string name, string id)
-        => new KeyValueEventStore(_storage.Create<long, EventState>(database, name, id, GetLock(database, name, id)));
 
     /// <inheritdoc/>
-    public IEventStore GetStore(string name, string id)
-        => new KeyValueEventStore(_storage.Create<long, EventState>(null, name, id));
-
-    /// <summary>
-    /// Gets an event store for the specified metadata.
-    /// </summary>
-    /// <param name="metadata">The metadata containing context and domain information.</param>
-    /// <returns>An instance of <see cref="IEventStore"/>.</returns>
-    public IEventStore GetStore(Metadata metadata)
-        => new KeyValueEventStore(_storage.Create<long, EventState>(
-            metadata.Context.PartitionId,
-            metadata.Message.Domain.Name,
-            metadata.Message.Domain.Id));
-    }
-
-    private Lock GetLock(string database, string container, string entity)
+    public async Task<IEventStore> OpenStoreAsync(
+        string database,
+        string name,
+        string id,
+        CancellationToken cancellationToken)
     {
-        string lockId = $"{entity}/{container}/{database}";
-        if (_locks.TryGetValue(lockId, out Lock? lockInfo))
-        {
-            if (lockInfo.Expiration > DateTimeOffset.UtcNow)
-            {
-                lockInfo.Lock.Exit();
-            }
-        }
-
-        _locks[lockId] = (new Lock(), DateTimeOffset.UtcNow.Add(_timeout));
+        var store = new KeyValueEventStore(
+            _storage.Create<long, EventState>(database, name, id),
+            _storage.Create<long, EventState>(database + _snapshotSuffix, name, id),
+            _storage.Create<string, State<IEnumerable<long>>>(database + _snapshotIndexSuffix, name, id),
+            _timeProvider);
+        await store.OpenAsync(_sessionTimeout, _openTimeout, cancellationToken).ConfigureAwait(false);
+        return store;
     }
+
+    /// <inheritdoc/>
+    public async Task<IEventStore> OpenStoreAsync(Metadata metadata, CancellationToken cancellationToken)
+    {
+        var store = new KeyValueEventStore(
+            _storage.Create<long, EventState>(
+                metadata.Context.PartitionId,
+                metadata.Message.Domain.Name,
+                metadata.Message.Domain.Id),
+            _storage.Create<long, EventState>(
+                metadata.Context.PartitionId + _snapshotSuffix,
+                metadata.Message.Domain.Name,
+                metadata.Message.Domain.Id),
+            _storage.Create<string, State<IEnumerable<long>>>(
+                metadata.Context.PartitionId + _snapshotIndexSuffix,
+                metadata.Message.Domain.Name,
+                metadata.Message.Domain.Id),
+            _timeProvider);
+        await store.OpenAsync(_sessionTimeout, _openTimeout, cancellationToken).ConfigureAwait(false);
+        return store;
+    }
+
+    /// <inheritdoc/>
+    public Task<IEventStore> OpenStoreAsync(string name, string id, CancellationToken cancellationToken)
+        => OpenStoreAsync(
+            _defaultDatabase,
+            name,
+            id,
+            cancellationToken);
 }

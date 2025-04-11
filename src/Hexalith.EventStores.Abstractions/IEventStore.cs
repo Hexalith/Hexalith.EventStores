@@ -34,6 +34,11 @@ public interface IEventStore
     Task ClearSnapshotsAsync(CancellationToken cancellationToken);
 
     /// <summary>
+    /// Closes the event store and releases any resources associated with it.
+    /// </summary>
+    void Close();
+
+    /// <summary>
     /// Gets all stream items.
     /// </summary>
     /// <param name="useSnapshot">if set to <c>true</c> use a snapshot to avoid replaying all events.</param>

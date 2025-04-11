@@ -17,6 +17,7 @@ public sealed class DuplicateEventStoreIdempotencyIdException : Exception
     /// <summary>
     /// Initializes a new instance of the <see cref="DuplicateEventStoreIdempotencyIdException"/> class.
     /// </summary>
+    /// <param name="ev">The event message.</param>
     public DuplicateEventStoreIdempotencyIdException(EventMessage ev)
         : base($"Stream '{ev.Metadata.Context.PartitionId}/{ev.Metadata.Message.Domain.Name}/{ev.Metadata.Message.Domain.Id}' item already contains an item with idempotency ID '{ev.Metadata.Message.Id}'.")
     {

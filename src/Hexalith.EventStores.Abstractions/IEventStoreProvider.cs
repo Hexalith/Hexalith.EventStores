@@ -15,29 +15,32 @@ public interface IEventStoreProvider
     /// <summary>
     /// Gets an event stream. If the stream does not exist, it is created.
     /// </summary>
-    /// <param name="database">The database name.</param>
-    /// <param name="name">The stream name.</param>
-    /// <param name="id">The stream identifier.</param>
-    /// <returns>The event stream.</returns>
-    IEventStore GetStore(string database, string name, string id);
-
-    /// <summary>
-    /// Gets an event stream. If the stream does not exist, it is created.
-    /// </summary>
-    /// <param name="name">The stream name.</param>
-    /// <param name="id">The stream identifier.</param>
-    /// <returns>The event stream.</returns>
-    IEventStore GetStore(string name, string id);
-
-    /// <summary>
-    /// Gets an event stream. If the stream does not exist, it is created.
-    /// </summary>
     /// <param name="metadata">The metadata.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The event stream.</returns>
     /// <remarks>
     /// The database name is the partition identifier.
     /// The container name is the domain name.
     /// The id is the domain identifier.
     /// </remarks>
-    IEventStore GetStore(Metadata metadata);
+    Task<IEventStore> OpenStoreAsync(Metadata metadata, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets an event stream. If the stream does not exist, it is created.
+    /// </summary>
+    /// <param name="name">The stream name.</param>
+    /// <param name="id">The stream identifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The event stream.</returns>
+    Task<IEventStore> OpenStoreAsync(string name, string id, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets an event stream. If the stream does not exist, it is created.
+    /// </summary>
+    /// <param name="database">The database name.</param>
+    /// <param name="name">The stream name.</param>
+    /// <param name="id">The stream identifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The event stream.</returns>
+    Task<IEventStore> OpenStoreAsync(string database, string name, string id, CancellationToken cancellationToken);
 }

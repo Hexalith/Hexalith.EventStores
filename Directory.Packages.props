@@ -4,6 +4,7 @@
     <HexalithPackagesProps>$([MSBuild]::GetDirectoryNameOfFileAbove('Hexalith.Builds', 'Props/Directory.Packages.props'))</HexalithPackagesProps>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="Hexalith.Commons.Configurations" Version="1.66.4" />
     <PackageVersion Include="Hexalith.Commons.Metadatas" Version="1.66.4" />
     <PackageVersion Include="Hexalith.KeyValueStorages.Abstractions" Version="2.1.1" />
     <PackageVersion Include="Hexalith.KeyValueStorages.Files" Version="2.1.1" />

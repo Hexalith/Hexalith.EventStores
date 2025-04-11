@@ -18,7 +18,7 @@ var keyValueProvider = new JsonFileKeyValueProvider(options: PolymorphicHelper.D
 
 var provider = new KeyValueEventStoreProvider(keyValueProvider);
 
-IEventStore store = provider.GetStore("BankAccount", "123456000");
+IEventStore store = await provider.OpenStoreAsync("BankAccount", "123456000", CancellationToken.None);
 
 // Open a bank account with a 1500 EUR deposit
 await store.AddAsync(
