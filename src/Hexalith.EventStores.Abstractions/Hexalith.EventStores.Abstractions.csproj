@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Description>Hexalith EventStores utilities and helpers</Description>
+    <PackageProjectUrl>https://github.com/Hexalith/Hexalith.EventStores</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Hexalith/Hexalith.EventStores</RepositoryUrl>
+    <PackageTags>hexalith;EventStores;</PackageTags>
+    <RootNamespace>Hexalith.EventStores</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Hexalith.Commons.Configurations" />
+    <PackageReference Include="Hexalith.Commons.Metadatas" />
+    <PackageReference Include="Hexalith.PolymorphicSerializations" />
+  </ItemGroup>
+</Project>
