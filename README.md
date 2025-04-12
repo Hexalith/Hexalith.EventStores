@@ -1,6 +1,6 @@
 # Hexalith.EventStores
 
-This is a template repository for creating new Hexalith packages. The repository provides a structured starting point for developing new packages within the Hexalith ecosystem.
+A lightweight and efficient event store implementation for .NET applications using event sourcing patterns. This library provides a robust foundation for building event-sourced systems with support for event persistence, snapshots, and versioning.
 
 ## Build Status
 
@@ -26,57 +26,119 @@ This is a template repository for creating new Hexalith packages. The repository
 
 ## Overview
 
-This repository provides a template for creating new Hexalith packages. It includes all the necessary configuration files, directory structure, and GitHub workflow configurations to ensure consistency across Hexalith packages.
+Hexalith.EventStores provides a flexible event storage solution for applications implementing event sourcing patterns. It offers:
+
+- Event stream persistence with versioning
+- Snapshot support for performance optimization
+- Concurrent access control with session management
+- Abstract interfaces for implementing different storage backends
+- Thread-safe operations with cancellation support
+
+## Key Components
+
+### Abstractions
+
+- **IEventStore**: Core interface for event store operations (add, get, snapshot, version management)
+- **IEventStoreProvider**: Factory interface for creating event store instances
+- **EventMessage**: Container for event data with metadata
+
+### Implementations
+
+- **KeyValueEventStore**: Implementation using key-value storage for persistence
+- **KeyValueEventStoreProvider**: Provider for creating KeyValueEventStore instances
+
+## Getting Started
+
+### Installation
+
+```bash
+dotnet add package Hexalith.EventStores
+```
+
+### Basic Usage
+
+```csharp
+// Create event store provider
+IKeyValueStorage storage = new YourKeyValueStorage();
+IEventStoreProvider provider = new KeyValueEventStoreProvider(storage);
+
+// Get or create an event store
+IEventStore store = await provider.GetOrCreateStoreAsync(
+    "YourStreamName", 
+    cancellationToken);
+
+// Open the store
+await store.OpenAsync(cancellationToken);
+
+try
+{
+    // Store events
+    var events = new List<EventMessage>
+    {
+        new EventMessage(
+            new YourDomainEvent { /* event data */ },
+            new Metadata(/* metadata */)
+        )
+    };
+    
+    long version = await store.AddAsync(events, cancellationToken);
+    
+    // Retrieve events
+    IEnumerable<EventMessage> storedEvents = await store.GetAsync(cancellationToken);
+    
+    // Create a snapshot
+    await store.SnapshotAsync(
+        version,
+        new EventMessage(/* snapshot data */),
+        cancellationToken);
+}
+finally
+{
+    // Close the store when done
+    store.Close();
+}
+```
+
+## Advanced Features
+
+### Snapshots
+
+Snapshots allow for efficient retrieval of event stream state without replaying all events:
+
+```csharp
+// Create a snapshot at the current version
+long version = await store.VersionAsync(cancellationToken);
+await store.SnapshotAsync(
+    version,
+    CalculateSnapshot(events),
+    cancellationToken);
+
+// Retrieve using snapshot
+var events = await store.GetAsync(useSnapshot: true, cancellationToken);
+```
+
+### Session Management
+
+The event store implements session-based locking to prevent concurrent access:
+
+```csharp
+// Open with custom timeouts
+await store.OpenAsync(
+    sessionTimeout: TimeSpan.FromMinutes(5),
+    openTimeout: TimeSpan.FromSeconds(10),
+    cancellationToken);
+```
 
 ## Repository Structure
 
 The repository is organized as follows:
 
-- [src](./src/README.md) Is the source code directory where you will add your package projects.
-- [test](./test/README.md) Contains test projects for your packages.
-- [examples](./examples/README.md) Contains example implementations of your packages.
-- [Hexalith.Builds](./Hexalith.Builds/README.md) Contains shared build configurations and tools.
-
-## Getting Started
-
-### Prerequisites
-
-- [Hexalith.Builds](https://github.com/Hexalith/Hexalith.Builds)
-- [.NET 8 SDK](https://dotnet.microsoft.com/download) or later
-- [PowerShell 7](https://github.com/PowerShell/PowerShell) or later
-- [Git](https://git-scm.com/)
-
-### Initializing the Package
-
-To use this template to create a new Hexalith package:
-
-1. Clone this repository or use it as a template when creating a new repository on GitHub.
-2. Run the initialization script with your desired package name:
-
-```powershell
-./initialize.ps1 -PackageName "YourPackageName"
-```
-
-This script will:
-
-- Replace all occurrences of "EventStores" with your package name
-- Replace all occurrences of "EventStores" with the lowercase version of your package name
-- Rename directories and files that contain "EventStores" in their name
-- Initialize and update Git submodules
-- Set up the project structure for your new package
-
-### Git Submodules
-
-This template uses the Hexalith.Builds repository as a Git submodule. For information about the build system and configuration, refer to the README files in the Hexalith.Builds directory.
-
-## Development
-
-After initializing your package, you can start developing by:
-
-1. Opening the solution file in your preferred IDE
-2. Adding your implementation to the src/ directory
-3. Writing tests in the test/ directory
-4. Building and testing your package
+- [src](./src/README.md): Source code for the event store libraries
+  - Hexalith.EventStores.Abstractions: Core interfaces and models
+  - Hexalith.EventStores: Implementation of the event store
+- [test](./test/README.md): Test projects
+- [examples](./examples/README.md): Example implementations
+- [Hexalith.Builds](./Hexalith.Builds/README.md): Shared build configurations
 
 ## License
 
