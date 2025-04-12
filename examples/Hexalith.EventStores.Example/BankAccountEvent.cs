@@ -19,10 +19,10 @@ public partial record BankAccountEvent([property: DataMember] string Id)
     /// <summary>
     /// Gets the aggregate identifier for the bank account event.
     /// </summary>
-    public string AggregateId => Id;
+    public string DomainId => Id;
 
     /// <summary>
     /// Gets the name of the aggregate associated with the bank account event.
     /// </summary>
-    public static string AggregateName => "BankAccount";
+    public static string DomainName => "BankAccount";
 }

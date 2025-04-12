@@ -79,20 +79,19 @@ public class KeyValueEventStoreProvider : IEventStoreProvider
     /// <inheritdoc/>
     public async Task<IEventStore> OpenStoreAsync(Metadata metadata, CancellationToken cancellationToken)
     {
-        var store = new KeyValueEventStore(
-            _storage.Create<long, EventState>(
+        IKeyValueStore<long, EventState> eventStore = _storage.Create<long, EventState>(
                 metadata.Context.PartitionId,
                 metadata.Message.Domain.Name,
-                metadata.Message.Domain.Id),
-            _storage.Create<long, EventState>(
+                metadata.Message.Domain.Id);
+        IKeyValueStore<long, EventState> snapShotStore = _storage.Create<long, EventState>(
                 metadata.Context.PartitionId + _snapshotSuffix,
                 metadata.Message.Domain.Name,
-                metadata.Message.Domain.Id),
-            _storage.Create<string, State<IEnumerable<long>>>(
+                metadata.Message.Domain.Id);
+        IKeyValueStore<string, State<IEnumerable<long>>> snapshotCollectionStore = _storage.Create<string, State<IEnumerable<long>>>(
                 metadata.Context.PartitionId + _snapshotIndexSuffix,
                 metadata.Message.Domain.Name,
-                metadata.Message.Domain.Id),
-            _timeProvider);
+                metadata.Message.Domain.Id);
+        var store = new KeyValueEventStore(eventStore, snapShotStore, snapshotCollectionStore, _timeProvider);
         await store.OpenAsync(_sessionTimeout, _openTimeout, cancellationToken).ConfigureAwait(false);
         return store;
     }

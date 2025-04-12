@@ -19,4 +19,15 @@ using Hexalith.PolymorphicSerializations;
 public partial record TestMessage(
     [property: DataMember] string Id,
     [property: DataMember] string Value,
-    [property: DataMember] bool IsSnapshot);
+    [property: DataMember] bool IsSnapshot)
+{
+    /// <summary>
+    /// Gets the aggregate identifier for the test message.
+    /// </summary>
+    public string DomainId => Id;
+
+    /// <summary>
+    /// Gets the name of the aggregate associated with the test message.
+    /// </summary>
+    public static string DomainName => "EventStoreTest";
+}
