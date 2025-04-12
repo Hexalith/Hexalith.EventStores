@@ -366,7 +366,7 @@ public class KeyValueEventStoreTests
 
         _ = eventStore
             .Setup(s => s.ExistsAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
+            .ReturnsAsync((long v, CancellationToken _) => v <= 3);
 
         EventMessage event1 = CreateEventMessage(1);
         EventMessage event2 = CreateEventMessage(2);

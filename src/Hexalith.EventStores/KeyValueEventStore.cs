@@ -154,7 +154,7 @@ public class KeyValueEventStore : IEventStore, IDisposable, IAsyncDisposable
             long snapshotVersion = await LastSnapshotVersionAsync(cancellationToken).ConfigureAwait(false);
             if (snapshotVersion > 0)
             {
-                EventState? snapshot = await _eventStore.GetAsync(snapshotVersion, cancellationToken).ConfigureAwait(false);
+                EventState? snapshot = await _snapshotStore.GetAsync(snapshotVersion, cancellationToken).ConfigureAwait(false);
                 if (snapshot != null)
                 {
                     events.Add(snapshot.Value);
