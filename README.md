@@ -129,6 +129,32 @@ await store.OpenAsync(
     cancellationToken);
 ```
 
+## Examples
+
+The repository includes examples demonstrating how to use Hexalith.EventStores in practical scenarios:
+
+### Bank Account Example
+
+A simple application that demonstrates core event sourcing concepts using a bank account domain model:
+
+- Creating and using an event store with file-based persistence
+- Implementing domain events with polymorphic serialization
+- Adding and retrieving events with proper sequencing
+- Modeling a domain with C# records and event sourcing patterns
+
+[View Bank Account Example](./examples/Hexalith.EventStores.Example/README.md)
+
+### Additional Examples (Planned)
+
+Future releases will include examples covering:
+
+- Domain-Driven Design with event sourcing
+- Microservices communication patterns
+- Performance optimization techniques
+- Custom storage backend implementations
+
+[View Examples Overview](./examples/README.md)
+
 ## Repository Structure
 
 The repository is organized as follows:
