@@ -111,13 +111,13 @@ public class KeyValueEventStoreProviderTests
 
         var storageProvider = new Mock<IKeyValueProvider>();
         _ = storageProvider
-            .Setup(p => p.Create<long, EventState>("TestPartition", "TestDomain", "TestDomainId"))
+            .Setup(p => p.Create<long, EventState>("default", "EventStoreTest", "123"))
             .Returns(eventStore.Object);
         _ = storageProvider
-            .Setup(p => p.Create<long, EventState>("TestPartition__Snapshot", "TestDomain", "TestDomainId"))
+            .Setup(p => p.Create<long, EventState>("default__Snapshot", "EventStoreTest", "123"))
             .Returns(snapshotStore.Object);
         _ = storageProvider
-            .Setup(p => p.Create<string, State<IEnumerable<long>>>("TestPartition__Snapshot_Index", "TestDomain", "TestDomainId"))
+            .Setup(p => p.Create<string, State<IEnumerable<long>>>("default__Snapshot_Index", "EventStoreTest", "123"))
             .Returns(snapshotCollectionStore.Object);
 
         var provider = new KeyValueEventStoreProvider(options, storageProvider.Object, null);

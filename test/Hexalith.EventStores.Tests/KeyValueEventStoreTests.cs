@@ -54,8 +54,8 @@ public class KeyValueEventStoreTests
 
         var events = new List<EventMessage>
         {
-            CreateEventMessage(1),
-            CreateEventMessage(2),
+            CreateEventMessage(3),
+            CreateEventMessage(4),
         };
 
         // Act
@@ -65,6 +65,53 @@ public class KeyValueEventStoreTests
         version.ShouldBe(4);
         eventStore.Verify(s => s.AddAsync(3, It.IsAny<EventState>(), It.IsAny<CancellationToken>()), Times.Once);
         eventStore.Verify(s => s.AddAsync(4, It.IsAny<EventState>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    /// <summary>
+    /// Tests that adding events increments the version and adds the events to the store.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
+    [Fact]
+    public async Task AddAsync_AddsEventsInEmptyStoreAndReturnsCorrectVersion()
+    {
+        // Arrange
+        var mockTimeProvider = new MockTimeProvider(DateTimeOffset.UtcNow);
+        var eventStore = new Mock<IKeyValueStore<long, EventState>>();
+        SetupStoreProperties(eventStore, "database", "container", "entity");
+
+        _ = eventStore
+            .Setup(s => s.ExistsAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        _ = eventStore
+            .Setup(s => s.AddAsync(It.IsAny<long>(), It.IsAny<EventState>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("123");
+
+        var snapshotStore = new Mock<IKeyValueStore<long, EventState>>();
+        var snapshotCollectionStore = new Mock<IKeyValueStore<string, State<IEnumerable<long>>>>();
+
+        var store = new KeyValueEventStore(
+            eventStore.Object,
+            snapshotStore.Object,
+            snapshotCollectionStore.Object,
+            mockTimeProvider);
+
+        // Open the store before using it
+        await store.OpenAsync(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1), CancellationToken.None);
+
+        var events = new List<EventMessage>
+        {
+            CreateEventMessage(1),
+            CreateEventMessage(2),
+        };
+
+        // Act
+        long version = await store.AddAsync(events, CancellationToken.None);
+
+        // Assert
+        version.ShouldBe(2);
+        eventStore.Verify(s => s.AddAsync(1, It.IsAny<EventState>(), It.IsAny<CancellationToken>()), Times.Once);
+        eventStore.Verify(s => s.AddAsync(2, It.IsAny<EventState>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     /// <summary>
@@ -319,7 +366,7 @@ public class KeyValueEventStoreTests
 
         _ = eventStore
             .Setup(s => s.ExistsAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((long v, CancellationToken _) => v <= 3);
+            .ReturnsAsync(false);
 
         EventMessage event1 = CreateEventMessage(1);
         EventMessage event2 = CreateEventMessage(2);
