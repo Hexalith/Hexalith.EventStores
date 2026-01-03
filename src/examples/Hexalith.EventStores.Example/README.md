@@ -65,7 +65,7 @@ foreach (EventMessage message in await store.GetAsync(CancellationToken.None))
 ## Running the Example
 
 To run the example:
-1. Ensure .NET 9.0 SDK is installed
+1. Ensure .NET 10+ SDK is installed
 2. Build the solution
 3. Run the Hexalith.EventStores.Example project
 

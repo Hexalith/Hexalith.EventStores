@@ -13,15 +13,23 @@ The examples are designed to showcase different usage patterns and integration a
 
 ## Example Projects
 
-Currently, this directory contains placeholder projects for examples that will be implemented in future releases.
+### Available Examples
+
+#### [Bank Account Example](./Hexalith.EventStores.Example/README.md)
+
+A simple application demonstrating core event sourcing concepts using a bank account domain model:
+
+- Creating and using an event store with file-based persistence
+- Implementing domain events with polymorphic serialization
+- Adding and retrieving events with proper sequencing
+- Modeling a domain with C# records and event sourcing patterns
 
 ### Planned Examples
 
-1. **Basic Event Sourcing**: A simple application demonstrating core event sourcing concepts
-2. **Domain-Driven Design**: Implementing event sourcing with DDD patterns
-3. **Microservices Communication**: Using event stores for communication between microservices
-4. **Performance Optimization**: Advanced snapshot and caching strategies
-5. **Custom Storage Backends**: Implementing custom storage backends for specific needs
+1. **Domain-Driven Design**: Implementing event sourcing with DDD patterns
+2. **Microservices Communication**: Using event stores for communication between microservices
+3. **Performance Optimization**: Advanced snapshot and caching strategies
+4. **Custom Storage Backends**: Implementing custom storage backends for specific needs
 
 ## Usage
 

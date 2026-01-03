@@ -36,10 +36,9 @@ The `IEventStoreProvider` interface defines the contract for event store factory
 ```csharp
 public interface IEventStoreProvider
 {
-    Task<IEventStore> GetOrCreateStoreAsync(string id, CancellationToken cancellationToken);
-    Task<bool> StoreExistsAsync(string id, CancellationToken cancellationToken);
-    Task DeleteStoreAsync(string id, CancellationToken cancellationToken);
-    // Additional methods...
+    Task<IEventStore> OpenStoreAsync(Metadata metadata, CancellationToken cancellationToken);
+    Task<IEventStore> OpenStoreAsync(string name, string id, CancellationToken cancellationToken);
+    Task<IEventStore> OpenStoreAsync(string database, string name, string id, CancellationToken cancellationToken);
 }
 ```
 
@@ -48,12 +47,9 @@ public interface IEventStoreProvider
 The `EventMessage` record encapsulates the core data structure for events:
 
 ```csharp
-public record EventMessage(
-    object Data,
-    Metadata Metadata)
-{
-    // Methods and properties...
-}
+public sealed record EventMessage(
+    Polymorphic Event,
+    Metadata Metadata);
 ```
 
 ### EventStoreHelper
@@ -76,11 +72,15 @@ The configurations namespace contains classes for configuring event stores:
 
 Custom exceptions for error handling in event store operations:
 
-- `EventStoreException`: Base exception for all event store errors
 - `StoreVersionMismatchException`: Thrown when event sequence numbers don't match
 - `StoreNotOpenException`: Thrown when operations are attempted on a closed store
 - `InvalidStoreSessionException`: Thrown when session validation fails
-- Additional specialized exceptions
+- `StoreSessionExpiredException`: Thrown when the session has expired
+- `OpenStoreFailedException`: Thrown when opening a store fails
+- `DuplicateEventStoreIdempotencyIdException`: Thrown for duplicate idempotency IDs
+- `StreamIdempotencyIdNotFoundException`: Thrown when an idempotency ID is not found
+- `StreamSnapshotVersionNotFoundException`: Thrown when a snapshot version is not found
+- `StreamVersionNotFoundException`: Thrown when a stream version is not found
 
 ## Using the Abstractions
 

@@ -39,8 +39,8 @@ Hexalith.EventStores provides a flexible event storage solution for applications
 ### Abstractions
 
 - **IEventStore**: Core interface for event store operations (add, get, snapshot, version management)
-- **IEventStoreProvider**: Factory interface for creating event store instances
-- **EventMessage**: Container for event data with metadata
+- **IEventStoreProvider**: Factory interface for opening event store instances
+- **EventMessage**: Container for polymorphic event with metadata
 
 ### Implementations
 
@@ -59,37 +59,32 @@ dotnet add package Hexalith.EventStores
 
 ```csharp
 // Create event store provider
-IKeyValueStorage storage = new YourKeyValueStorage();
-IEventStoreProvider provider = new KeyValueEventStoreProvider(storage);
+IKeyValueProvider keyValueProvider = new YourKeyValueProvider();
+IEventStoreProvider provider = new KeyValueEventStoreProvider(keyValueProvider);
 
-// Get or create an event store
-IEventStore store = await provider.GetOrCreateStoreAsync(
-    "YourStreamName", 
+// Open an event store (creates if not exists)
+IEventStore store = await provider.OpenStoreAsync(
+    "YourAggregateName",
+    "YourAggregateId",
     cancellationToken);
-
-// Open the store
-await store.OpenAsync(cancellationToken);
 
 try
 {
-    // Store events
+    // Store events using the helper extension method
     var events = new List<EventMessage>
     {
-        new EventMessage(
-            new YourDomainEvent { /* event data */ },
-            new Metadata(/* metadata */)
-        )
+        new YourDomainEvent { /* event data */ }.CreateMessage()
     };
-    
+
     long version = await store.AddAsync(events, cancellationToken);
-    
+
     // Retrieve events
     IEnumerable<EventMessage> storedEvents = await store.GetAsync(cancellationToken);
-    
+
     // Create a snapshot
     await store.SnapshotAsync(
         version,
-        new EventMessage(/* snapshot data */),
+        CalculateSnapshot(storedEvents),
         cancellationToken);
 }
 finally
@@ -119,13 +114,13 @@ var events = await store.GetAsync(useSnapshot: true, cancellationToken);
 
 ### Session Management
 
-The event store implements session-based locking to prevent concurrent access:
+The event store implements session-based locking to prevent concurrent access. When using `OpenStoreAsync`, the store is automatically opened. For custom timeout configuration:
 
 ```csharp
-// Open with custom timeouts
+// Open with custom timeouts (after getting the store)
 await store.OpenAsync(
-    sessionTimeout: TimeSpan.FromMinutes(5),
-    openTimeout: TimeSpan.FromSeconds(10),
+    TimeSpan.FromMinutes(5),  // session timeout
+    TimeSpan.FromSeconds(10), // open timeout
     cancellationToken);
 ```
 
@@ -142,7 +137,7 @@ A simple application that demonstrates core event sourcing concepts using a bank
 - Adding and retrieving events with proper sequencing
 - Modeling a domain with C# records and event sourcing patterns
 
-[View Bank Account Example](./examples/Hexalith.EventStores.Example/README.md)
+[View Bank Account Example](./src/examples/Hexalith.EventStores.Example/README.md)
 
 ### Additional Examples (Planned)
 
@@ -153,7 +148,7 @@ Future releases will include examples covering:
 - Performance optimization techniques
 - Custom storage backend implementations
 
-[View Examples Overview](./examples/README.md)
+[View Examples Overview](./src/examples/README.md)
 
 ## Repository Structure
 
