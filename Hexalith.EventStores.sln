@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.35906.104
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11222.15 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
@@ -51,6 +51,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hexalith.EventStores.Exampl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hexalith.EventStores.Abstractions", "src\Hexalith.EventStores.Abstractions\Hexalith.EventStores.Abstractions.csproj", "{CCA8A23F-D69E-76DE-5B35-3B61C3C9CE73}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "packages", "packages", "{A059A85B-09F0-4FDC-9552-58F8F9565B02}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Hexalith.Builds", "Hexalith.Builds", "{09BA2530-C9CA-41B1-ACBA-835C51667462}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Props", "Props", "{402A12A0-A0DB-489E-9084-C194CD2BF206}"
+	ProjectSection(SolutionItems) = preProject
+		Hexalith.Builds\Props\Directory.Packages.props = Hexalith.Builds\Props\Directory.Packages.props
+		Hexalith.Builds\Props\Environment.Build.props = Hexalith.Builds\Props\Environment.Build.props
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +93,8 @@ Global
 		{A0520529-37CD-4558-8D3C-119DB006D10D} = {EDB74E69-759C-4EC4-911B-DF6D777A6CFA}
 		{52A95C3D-7705-406D-B0F6-C49017FC525F} = {3E198984-7A1D-4A63-BB49-FCF1B9AA5EF2}
 		{CCA8A23F-D69E-76DE-5B35-3B61C3C9CE73} = {2E1479EA-06ED-4A69-8F50-F17804066FA6}
+		{09BA2530-C9CA-41B1-ACBA-835C51667462} = {A059A85B-09F0-4FDC-9552-58F8F9565B02}
+		{402A12A0-A0DB-489E-9084-C194CD2BF206} = {09BA2530-C9CA-41B1-ACBA-835C51667462}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7B7376F4-B33A-4BC6-AFCA-C09B437568D7}
