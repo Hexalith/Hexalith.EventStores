@@ -1,5 +1,5 @@
 {
-  "name": "hexalith-EventStores",
+  "name": "hexalith-eventstores",
   "version": "0.0.0-development",
   "private": true,
   "description": "Hexalith EventStores libraries",
