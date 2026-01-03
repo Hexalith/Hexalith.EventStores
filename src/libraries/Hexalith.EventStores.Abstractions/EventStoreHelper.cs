@@ -6,6 +6,7 @@
 namespace Hexalith.EventStores;
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 using Hexalith.Commons.Metadatas;
 using Hexalith.Commons.UniqueIds;
@@ -25,7 +26,7 @@ public static class EventStoreHelper
     /// <returns>A new <see cref="EventMessage"/> instance.</returns>
     public static EventMessage CreateMessage(this Polymorphic messageEvent, MessageMetadata message, ContextMetadata context)
     {
-        var metadata = new Metadata(message, context);
+        Metadata metadata = new(message, context);
 
         return new EventMessage(messageEvent, metadata);
     }
@@ -47,7 +48,7 @@ public static class EventStoreHelper
         TimeProvider? timeProvider = null)
     {
         MessageMetadata message = messageEvent.CreateMessageMetadata(timeProvider);
-        var context = new ContextMetadata(
+        ContextMetadata context = new(
             message.Id,
             userId,
             partitionId,
@@ -70,8 +71,9 @@ public static class EventStoreHelper
     /// <param name="message">The message object to generate metadata for.</param>
     /// <param name="timeProvider">The optional time provider for generating timestamps. Defaults to <see cref="TimeProvider.System"/>.</param>
     /// <returns>A new <see cref="MessageMetadata"/> instance.</returns>
-    public static MessageMetadata CreateMessageMetadata(this object message, TimeProvider? timeProvider = null)
+    public static MessageMetadata CreateMessageMetadata([NotNull] this object message, TimeProvider? timeProvider = null)
     {
+        ArgumentNullException.ThrowIfNull(message);
         timeProvider ??= TimeProvider.System;
         (string name, string _, int version) = message.GetType().GetPolymorphicTypeDiscriminator();
 

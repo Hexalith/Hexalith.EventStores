@@ -28,7 +28,6 @@ public class OpenStoreFailedException : Exception
     /// Initializes a new instance of the <see cref="OpenStoreFailedException"/> class.
     /// </summary>
     public OpenStoreFailedException()
-        : base()
     {
     }
 

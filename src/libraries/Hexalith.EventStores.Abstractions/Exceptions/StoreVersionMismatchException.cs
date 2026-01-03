@@ -20,7 +20,7 @@ public sealed class StoreVersionMismatchException : Exception
     /// <param name="metadata">The message metadata.</param>
     /// <param name="expectedVersion">The expected version of the stream.</param>
     public StoreVersionMismatchException(Metadata metadata, long expectedVersion)
-        : base($"The added item version {metadata.Context.SequenceNumber} does not match the Stream '{metadata.Message.Domain.Name}/{metadata.Message.Domain.Id}' expected version '{expectedVersion}'.")
+        : base($"The added item version {metadata?.Context.SequenceNumber} does not match the Stream '{metadata?.Message.Domain.Name}/{metadata?.Message.Domain.Id}' expected version '{expectedVersion}'.")
     {
         Metadata = metadata;
         ExpectedVersion = expectedVersion;
@@ -30,7 +30,7 @@ public sealed class StoreVersionMismatchException : Exception
     /// Initializes a new instance of the <see cref="StoreVersionMismatchException"/> class.
     /// </summary>
     public StoreVersionMismatchException()
-        : base() { }
+    { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StoreVersionMismatchException"/> class.

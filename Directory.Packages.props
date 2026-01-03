@@ -1,4 +1,4 @@
-﻿﻿<Project>
+<Project>
   <!-- Module packages versions. -->
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>

@@ -31,7 +31,6 @@ public class StoreNotOpenException : Exception
     /// Initializes a new instance of the <see cref="StoreNotOpenException"/> class.
     /// </summary>
     public StoreNotOpenException()
-        : base()
     {
     }
 

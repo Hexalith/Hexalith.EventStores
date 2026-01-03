@@ -29,7 +29,6 @@ public class KeyValueEventStore : IEventStore, IDisposable, IAsyncDisposable
     private readonly TimeProvider _timeProvider;
     private bool _disposed;
     private string? _sessionId;
-    private string? _storeId;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="KeyValueEventStore"/> class.
@@ -54,7 +53,7 @@ public class KeyValueEventStore : IEventStore, IDisposable, IAsyncDisposable
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
-    private string StoreId => _storeId ??= $"{_eventStore.Entity}/{_eventStore.Container}/{_eventStore.Database}";
+    private string StoreId => field ??= $"{_eventStore.Entity}/{_eventStore.Container}/{_eventStore.Database}";
 
     /// <inheritdoc/>
     public async Task<long> AddAsync(IEnumerable<EventMessage> items, CancellationToken cancellationToken)
@@ -146,7 +145,7 @@ public class KeyValueEventStore : IEventStore, IDisposable, IAsyncDisposable
     public async Task<IEnumerable<EventMessage>> GetAsync(long version, bool useSnapshot, CancellationToken cancellationToken)
     {
         CheckSession();
-        var events = new List<EventMessage>();
+        List<EventMessage> events = [];
         long startVersion = 1;
 
         if (useSnapshot)
@@ -179,7 +178,7 @@ public class KeyValueEventStore : IEventStore, IDisposable, IAsyncDisposable
     public async Task<IEnumerable<EventMessage>> GetSliceAsync(long first, long last, CancellationToken cancellationToken)
     {
         CheckSession();
-        var events = new List<EventMessage>();
+        List<EventMessage> events = [];
         for (long i = first; i <= last; i++)
         {
             EventState? state = await _eventStore.GetAsync(i, cancellationToken).ConfigureAwait(false);
@@ -203,7 +202,7 @@ public class KeyValueEventStore : IEventStore, IDisposable, IAsyncDisposable
     /// <inheritdoc/>
     public async Task OpenAsync(TimeSpan sessionTimeout, TimeSpan openTimeout, CancellationToken cancellationToken)
     {
-        var retryWait = TimeSpan.FromMilliseconds(1);
+        TimeSpan retryWait = TimeSpan.FromMilliseconds(1);
         TimeSpan totalWait = TimeSpan.Zero;
         while (!LockStore(sessionTimeout))
         {
@@ -212,7 +211,7 @@ public class KeyValueEventStore : IEventStore, IDisposable, IAsyncDisposable
                 throw new OpenStoreFailedException(StoreId, sessionTimeout);
             }
 
-            await Task.Delay(retryWait, cancellationToken);
+            await Task.Delay(retryWait, cancellationToken).ConfigureAwait(false);
             totalWait += retryWait;
             retryWait += TimeSpan.FromMilliseconds(1);
         }
@@ -253,37 +252,32 @@ public class KeyValueEventStore : IEventStore, IDisposable, IAsyncDisposable
     }
 
     /// <inheritdoc/>
-    public async Task SnapshotAsync(long version, EventMessage snapshot, CancellationToken cancellationToken)
+    public async Task SnapshotAsync(long version, [NotNull] EventMessage snapshot, CancellationToken cancellationToken)
     {
-        CheckSession();
         ArgumentNullException.ThrowIfNull(snapshot);
+        CheckSession();
         _ = await _snapshotStore.AddOrUpdateAsync(
             version,
             new EventState(snapshot),
             cancellationToken)
             .ConfigureAwait(false);
         State<IEnumerable<long>>? snapshots = await _snapshotCollectionStore.TryGetAsync(_snapshotVersions, cancellationToken).ConfigureAwait(false);
-        if (snapshots == null)
-        {
-            _ = await _snapshotCollectionStore.AddAsync(
+        _ = snapshots == null
+            ? await _snapshotCollectionStore.AddAsync(
                 _snapshotVersions,
-                new State<IEnumerable<long>>(snapshots?.Value ?? [], null, null),
-                cancellationToken).ConfigureAwait(false);
-        }
-        else
-        {
-            _ = await _snapshotCollectionStore.SetAsync(
+                new State<IEnumerable<long>>([], null, null),
+                cancellationToken).ConfigureAwait(false)
+            : await _snapshotCollectionStore.SetAsync(
             _snapshotVersions,
             new State<IEnumerable<long>>(snapshots.Value.Append(version).Distinct().Order(), null, null),
             cancellationToken).ConfigureAwait(false);
-        }
     }
 
     /// <inheritdoc/>
     public async Task<IEnumerable<long>> SnapshotVersionsAsync(CancellationToken cancellationToken)
     {
         CheckSession();
-        return (await _snapshotCollectionStore.TryGetAsync(_snapshotVersions, cancellationToken))?.Value ?? [];
+        return (await _snapshotCollectionStore.TryGetAsync(_snapshotVersions, cancellationToken).ConfigureAwait(false))?.Value ?? [];
     }
 
     /// <inheritdoc/>

@@ -14,38 +14,40 @@ using Hexalith.PolymorphicSerializations;
 // Register the polymorphic mappers generated for the application events
 HexalithEventStoresExampleSerialization.RegisterPolymorphicMappers();
 
-var keyValueProvider = new JsonFileKeyValueProvider(options: PolymorphicHelper.DefaultJsonSerializerOptions);
+const string BankAccountId = "1500530001";
 
-var provider = new KeyValueEventStoreProvider(keyValueProvider);
+JsonFileKeyValueProvider keyValueProvider = new(options: PolymorphicHelper.DefaultJsonSerializerOptions);
 
-IEventStore store = await provider.OpenStoreAsync("BankAccount", "123456000", CancellationToken.None);
+KeyValueEventStoreProvider provider = new(keyValueProvider);
+
+IEventStore store = await provider.OpenStoreAsync("BankAccount", "123456000", CancellationToken.None).ConfigureAwait(false);
 
 // Open a bank account with a 1500 EUR deposit
 await store.AddAsync(
     [
-    new BankAccountCreated("1500530001", "Joe Dalton", "EUR").CreateMessage(),
-    new FundsDeposited("1500530001", 1500, DateTimeOffset.Now).CreateMessage(),
+    new BankAccountCreated(BankAccountId, "Joe Dalton", "EUR").CreateMessage(),
+    new FundsDeposited(BankAccountId, 1500, DateTimeOffset.Now).CreateMessage(),
     ],
-    CancellationToken.None);
+    CancellationToken.None).ConfigureAwait(false);
 
 // Withdraw 500 EUR
 await store.AddAsync(
-    [new FundsWithdrawn("1500530001", 500, DateTimeOffset.Now).CreateMessage()],
-    CancellationToken.None);
+    [new FundsWithdrawn(BankAccountId, 500, DateTimeOffset.Now).CreateMessage()],
+    CancellationToken.None).ConfigureAwait(false);
 
 // Deposit 1000 EUR
 await store.AddAsync(
-    [new FundsDeposited("1500530001", 1000, DateTimeOffset.Now).CreateMessage()],
-    CancellationToken.None);
+    [new FundsDeposited(BankAccountId, 1000, DateTimeOffset.Now).CreateMessage()],
+    CancellationToken.None).ConfigureAwait(false);
 
 // Withdraw 500 EUR with a sequence verification. Will fail if the sequence is not correct.
 // The expected sequence in the message is the last sequence number in the store + 1.
 await store.AddAsync(
-    [new FundsWithdrawn("1500530001", 500, DateTimeOffset.Now).CreateMessage(5)],
-    CancellationToken.None);
+    [new FundsWithdrawn(BankAccountId, 500, DateTimeOffset.Now).CreateMessage(5)],
+    CancellationToken.None).ConfigureAwait(false);
 
 // Write the store events to the console
-foreach (EventMessage message in await store.GetAsync(CancellationToken.None))
+foreach (EventMessage message in await store.GetAsync(CancellationToken.None).ConfigureAwait(false))
 {
     Console.WriteLine(JsonSerializer.Serialize(message.Event, PolymorphicHelper.DefaultJsonSerializerOptions));
 }

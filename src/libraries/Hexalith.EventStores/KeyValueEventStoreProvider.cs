@@ -40,9 +40,9 @@ public class KeyValueEventStoreProvider : IEventStoreProvider
     {
         ArgumentNullException.ThrowIfNull(storage);
         ArgumentNullException.ThrowIfNull(options);
-        SettingsException<EventStoreSettings>.ThrowIfUndefined(options.Value.DefaultOpenTimeout);
-        SettingsException<EventStoreSettings>.ThrowIfUndefined(options.Value.DefaultSessionTimeout);
-        SettingsException<EventStoreSettings>.ThrowIfUndefined(options.Value.DefaultDatabase);
+        SettingsException.ThrowIfUndefined<EventStoreSettings>(options.Value.DefaultOpenTimeout);
+        SettingsException.ThrowIfUndefined<EventStoreSettings>(options.Value.DefaultSessionTimeout);
+        SettingsException.ThrowIfUndefined<EventStoreSettings>(options.Value.DefaultDatabase);
         _storage = storage;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _openTimeout = options.Value.DefaultOpenTimeout;
@@ -67,7 +67,7 @@ public class KeyValueEventStoreProvider : IEventStoreProvider
         string id,
         CancellationToken cancellationToken)
     {
-        var store = new KeyValueEventStore(
+        KeyValueEventStore store = new(
             _storage.Create<long, EventState>(database, name, id),
             _storage.Create<long, EventState>(database + _snapshotSuffix, name, id),
             _storage.Create<string, State<IEnumerable<long>>>(database + _snapshotIndexSuffix, name, id),
@@ -77,8 +77,9 @@ public class KeyValueEventStoreProvider : IEventStoreProvider
     }
 
     /// <inheritdoc/>
-    public async Task<IEventStore> OpenStoreAsync(Metadata metadata, CancellationToken cancellationToken)
+    public async Task<IEventStore> OpenStoreAsync([NotNull] Metadata metadata, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(metadata);
         IKeyValueStore<long, EventState> eventStore = _storage.Create<long, EventState>(
                 metadata.Context.PartitionId,
                 metadata.Message.Domain.Name,
@@ -91,7 +92,7 @@ public class KeyValueEventStoreProvider : IEventStoreProvider
                 metadata.Context.PartitionId + _snapshotIndexSuffix,
                 metadata.Message.Domain.Name,
                 metadata.Message.Domain.Id);
-        var store = new KeyValueEventStore(eventStore, snapShotStore, snapshotCollectionStore, _timeProvider);
+        KeyValueEventStore store = new(eventStore, snapShotStore, snapshotCollectionStore, _timeProvider);
         await store.OpenAsync(_sessionTimeout, _openTimeout, cancellationToken).ConfigureAwait(false);
         return store;
     }

@@ -16,6 +16,7 @@ using Hexalith.PolymorphicSerializations;
 /// <param name="Value">The value associated with the test message.</param>
 /// /// <param name="IsSnapshot">Indicates whether the message is a snapshot.</param>
 [PolymorphicSerialization]
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "CA1515:Consider making public types internal", Justification = "Need for generated code")]
 public partial record TestMessage(
     [property: DataMember] string Id,
     [property: DataMember] string Value,

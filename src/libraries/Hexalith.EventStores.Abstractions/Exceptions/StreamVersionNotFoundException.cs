@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 // </copyright>
 
-namespace Hexalith.Streams.Exceptions;
+namespace Hexalith.EventStores.Exceptions;
 
 using System;
 
@@ -27,8 +27,7 @@ public sealed class StreamVersionNotFoundException : Exception
     /// <summary>
     /// Initializes a new instance of the <see cref="StreamVersionNotFoundException"/> class.
     /// </summary>
-    public StreamVersionNotFoundException()
-        : base() => StreamId = string.Empty;
+    public StreamVersionNotFoundException() => StreamId = string.Empty;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StreamVersionNotFoundException"/> class.

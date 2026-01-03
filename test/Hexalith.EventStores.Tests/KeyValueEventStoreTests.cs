@@ -25,11 +25,12 @@ public class KeyValueEventStoreTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task AddAsync_AddsEventsAndReturnsCorrectVersion()
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2007:Consider calling ConfigureAwait on the awaited task", Justification = "using issue")]
+    public async Task AddAsyncAddsEventsAndReturnsCorrectVersion()
     {
         // Arrange
-        var mockTimeProvider = new MockTimeProvider(DateTimeOffset.UtcNow);
-        var eventStore = new Mock<IKeyValueStore<long, EventState>>();
+        MockTimeProvider mockTimeProvider = new(DateTimeOffset.UtcNow);
+        Mock<IKeyValueStore<long, EventState>> eventStore = new();
         SetupStoreProperties(eventStore, "database", "container", "entity");
 
         _ = eventStore
@@ -40,10 +41,10 @@ public class KeyValueEventStoreTests
             .Setup(s => s.AddAsync(It.IsAny<long>(), It.IsAny<EventState>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync("123");
 
-        var snapshotStore = new Mock<IKeyValueStore<long, EventState>>();
-        var snapshotCollectionStore = new Mock<IKeyValueStore<string, State<IEnumerable<long>>>>();
+        Mock<IKeyValueStore<long, EventState>> snapshotStore = new();
+        Mock<IKeyValueStore<string, State<IEnumerable<long>>>> snapshotCollectionStore = new();
 
-        var store = new KeyValueEventStore(
+        await using KeyValueEventStore store = new(
             eventStore.Object,
             snapshotStore.Object,
             snapshotCollectionStore.Object,
@@ -52,11 +53,11 @@ public class KeyValueEventStoreTests
         // Open the store before using it
         await store.OpenAsync(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1), CancellationToken.None);
 
-        var events = new List<EventMessage>
-        {
+        List<EventMessage> events =
+        [
             CreateEventMessage(3),
             CreateEventMessage(4),
-        };
+        ];
 
         // Act
         long version = await store.AddAsync(events, CancellationToken.None);
@@ -72,11 +73,12 @@ public class KeyValueEventStoreTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task AddAsync_AddsEventsInEmptyStoreAndReturnsCorrectVersion()
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2007:Consider calling ConfigureAwait on the awaited task", Justification = "using issue")]
+    public async Task AddAsyncAddsEventsInEmptyStoreAndReturnsCorrectVersion()
     {
         // Arrange
-        var mockTimeProvider = new MockTimeProvider(DateTimeOffset.UtcNow);
-        var eventStore = new Mock<IKeyValueStore<long, EventState>>();
+        MockTimeProvider mockTimeProvider = new(DateTimeOffset.UtcNow);
+        Mock<IKeyValueStore<long, EventState>> eventStore = new();
         SetupStoreProperties(eventStore, "database", "container", "entity");
 
         _ = eventStore
@@ -87,10 +89,10 @@ public class KeyValueEventStoreTests
             .Setup(s => s.AddAsync(It.IsAny<long>(), It.IsAny<EventState>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync("123");
 
-        var snapshotStore = new Mock<IKeyValueStore<long, EventState>>();
-        var snapshotCollectionStore = new Mock<IKeyValueStore<string, State<IEnumerable<long>>>>();
+        Mock<IKeyValueStore<long, EventState>> snapshotStore = new();
+        Mock<IKeyValueStore<string, State<IEnumerable<long>>>> snapshotCollectionStore = new();
 
-        var store = new KeyValueEventStore(
+        await using KeyValueEventStore store = new(
             eventStore.Object,
             snapshotStore.Object,
             snapshotCollectionStore.Object,
@@ -99,11 +101,11 @@ public class KeyValueEventStoreTests
         // Open the store before using it
         await store.OpenAsync(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1), CancellationToken.None);
 
-        var events = new List<EventMessage>
-        {
+        List<EventMessage> events =
+        [
             CreateEventMessage(1),
             CreateEventMessage(2),
-        };
+        ];
 
         // Act
         long version = await store.AddAsync(events, CancellationToken.None);
@@ -119,21 +121,22 @@ public class KeyValueEventStoreTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task ClearSnapshotsAsync_RemovesAllSnapshots()
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2007:Consider calling ConfigureAwait on the awaited task", Justification = "using issue")]
+    public async Task ClearSnapshotsAsyncRemovesAllSnapshots()
     {
         // Arrange
-        var mockTimeProvider = new MockTimeProvider(DateTimeOffset.UtcNow);
-        var eventStore = new Mock<IKeyValueStore<long, EventState>>();
+        MockTimeProvider mockTimeProvider = new(DateTimeOffset.UtcNow);
+        Mock<IKeyValueStore<long, EventState>> eventStore = new();
         SetupStoreProperties(eventStore, "database", "container", "entity");
 
-        var snapshotStore = new Mock<IKeyValueStore<long, EventState>>();
+        Mock<IKeyValueStore<long, EventState>> snapshotStore = new();
         _ = snapshotStore
             .Setup(s => s.RemoveAsync(It.IsAny<long>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        var snapshotCollectionStore = new Mock<IKeyValueStore<string, State<IEnumerable<long>>>>();
+        Mock<IKeyValueStore<string, State<IEnumerable<long>>>> snapshotCollectionStore = new();
 
-        var snapshotVersions = new List<long> { 1, 3, 5 };
+        List<long> snapshotVersions = [1, 3, 5];
         _ = snapshotCollectionStore
             .Setup(s => s.TryGetAsync("Versions", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new State<IEnumerable<long>>(snapshotVersions, null, null));
@@ -142,7 +145,7 @@ public class KeyValueEventStoreTests
             .Setup(s => s.RemoveAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        var store = new KeyValueEventStore(
+        await using KeyValueEventStore store = new(
             eventStore.Object,
             snapshotStore.Object,
             snapshotCollectionStore.Object,
@@ -176,11 +179,11 @@ public class KeyValueEventStoreTests
     /// Tests that the constructor throws an exception when the event store is null.
     /// </summary>
     [Fact]
-    public void Constructor_NullEventStore_ThrowsArgumentNullException()
+    public void ConstructorNullEventStoreThrowsArgumentNullException()
     {
         // Arrange
-        var snapshotStore = new Mock<IKeyValueStore<long, EventState>>();
-        var snapshotCollectionStore = new Mock<IKeyValueStore<string, State<IEnumerable<long>>>>();
+        Mock<IKeyValueStore<long, EventState>> snapshotStore = new();
+        Mock<IKeyValueStore<string, State<IEnumerable<long>>>> snapshotCollectionStore = new();
 
         // Act & Assert
         _ = Should.Throw<ArgumentNullException>(() =>
@@ -195,11 +198,11 @@ public class KeyValueEventStoreTests
     /// Tests that the constructor throws an exception when the snapshot collection store is null.
     /// </summary>
     [Fact]
-    public void Constructor_NullSnapshotCollectionStore_ThrowsArgumentNullException()
+    public void ConstructorNullSnapshotCollectionStoreThrowsArgumentNullException()
     {
         // Arrange
-        var eventStore = new Mock<IKeyValueStore<long, EventState>>();
-        var snapshotStore = new Mock<IKeyValueStore<long, EventState>>();
+        Mock<IKeyValueStore<long, EventState>> eventStore = new();
+        Mock<IKeyValueStore<long, EventState>> snapshotStore = new();
 
         // Act & Assert
         _ = Should.Throw<ArgumentNullException>(() =>
@@ -214,11 +217,11 @@ public class KeyValueEventStoreTests
     /// Tests that the constructor throws an exception when the snapshot store is null.
     /// </summary>
     [Fact]
-    public void Constructor_NullSnapshotStore_ThrowsArgumentNullException()
+    public void ConstructorNullSnapshotStoreThrowsArgumentNullException()
     {
         // Arrange
-        var eventStore = new Mock<IKeyValueStore<long, EventState>>();
-        var snapshotCollectionStore = new Mock<IKeyValueStore<string, State<IEnumerable<long>>>>();
+        Mock<IKeyValueStore<long, EventState>> eventStore = new();
+        Mock<IKeyValueStore<string, State<IEnumerable<long>>>> snapshotCollectionStore = new();
 
         // Act & Assert
         _ = Should.Throw<ArgumentNullException>(() =>
@@ -233,20 +236,20 @@ public class KeyValueEventStoreTests
     /// Tests that disposing the event store works correctly.
     /// </summary>
     [Fact]
-    public void Dispose_ClosesSessionAndDisposesResources()
+    public void DisposeClosesSessionAndDisposesResources()
     {
         // Arrange
-        var eventStore = new Mock<IKeyValueStore<long, EventState>>();
+        Mock<IKeyValueStore<long, EventState>> eventStore = new();
         _ = eventStore.As<IDisposable>().Setup(d => d.Dispose());
         SetupStoreProperties(eventStore, "database", "container", "entity");
 
-        var snapshotStore = new Mock<IKeyValueStore<long, EventState>>();
+        Mock<IKeyValueStore<long, EventState>> snapshotStore = new();
         _ = snapshotStore.As<IDisposable>().Setup(d => d.Dispose());
 
-        var snapshotCollectionStore = new Mock<IKeyValueStore<string, State<IEnumerable<long>>>>();
+        Mock<IKeyValueStore<string, State<IEnumerable<long>>>> snapshotCollectionStore = new();
         _ = snapshotCollectionStore.As<IDisposable>().Setup(d => d.Dispose());
 
-        var store = new KeyValueEventStore(
+        KeyValueEventStore store = new(
             eventStore.Object,
             snapshotStore.Object,
             snapshotCollectionStore.Object,
@@ -266,11 +269,12 @@ public class KeyValueEventStoreTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task GetAsync_ReturnsAllEvents()
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2007:Consider calling ConfigureAwait on the awaited task", Justification = "using issue")]
+    public async Task GetAsyncReturnsAllEvents()
     {
         // Arrange
-        var mockTimeProvider = new MockTimeProvider(DateTimeOffset.UtcNow);
-        var eventStore = new Mock<IKeyValueStore<long, EventState>>();
+        MockTimeProvider mockTimeProvider = new(DateTimeOffset.UtcNow);
+        Mock<IKeyValueStore<long, EventState>> eventStore = new();
         SetupStoreProperties(eventStore, "database", "container", "entity");
 
         _ = eventStore
@@ -293,14 +297,14 @@ public class KeyValueEventStoreTests
             .Setup(s => s.GetAsync(3, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new EventState(event3));
 
-        var snapshotStore = new Mock<IKeyValueStore<long, EventState>>();
-        var snapshotCollectionStore = new Mock<IKeyValueStore<string, State<IEnumerable<long>>>>();
+        Mock<IKeyValueStore<long, EventState>> snapshotStore = new();
+        Mock<IKeyValueStore<string, State<IEnumerable<long>>>> snapshotCollectionStore = new();
 
         _ = snapshotCollectionStore
             .Setup(s => s.TryGetAsync("Versions", It.IsAny<CancellationToken>()))
             .ReturnsAsync((State<IEnumerable<long>>?)null);
 
-        var store = new KeyValueEventStore(
+        await using KeyValueEventStore store = new(
             eventStore.Object,
             snapshotStore.Object,
             snapshotCollectionStore.Object,
@@ -326,16 +330,17 @@ public class KeyValueEventStoreTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task Methods_StoreNotOpened_ThrowsStoreNotOpenException()
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2007:Consider calling ConfigureAwait on the awaited task", Justification = "using issue")]
+    public async Task MethodsStoreNotOpenedThrowsStoreNotOpenException()
     {
         // Arrange
-        var eventStore = new Mock<IKeyValueStore<long, EventState>>();
+        Mock<IKeyValueStore<long, EventState>> eventStore = new();
         SetupStoreProperties(eventStore, "database", "container", "entity");
 
-        var snapshotStore = new Mock<IKeyValueStore<long, EventState>>();
-        var snapshotCollectionStore = new Mock<IKeyValueStore<string, State<IEnumerable<long>>>>();
+        Mock<IKeyValueStore<long, EventState>> snapshotStore = new();
+        Mock<IKeyValueStore<string, State<IEnumerable<long>>>> snapshotCollectionStore = new();
 
-        var store = new KeyValueEventStore(
+        await using KeyValueEventStore store = new(
             eventStore.Object,
             snapshotStore.Object,
             snapshotCollectionStore.Object,
@@ -357,11 +362,12 @@ public class KeyValueEventStoreTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task SnapshotAsync_CreatesAndUsesSnapshot()
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2007:Consider calling ConfigureAwait on the awaited task", Justification = "using issue")]
+    public async Task SnapshotAsyncCreatesAndUsesSnapshot()
     {
         // Arrange
-        var mockTimeProvider = new MockTimeProvider(DateTimeOffset.UtcNow);
-        var eventStore = new Mock<IKeyValueStore<long, EventState>>();
+        MockTimeProvider mockTimeProvider = new(DateTimeOffset.UtcNow);
+        Mock<IKeyValueStore<long, EventState>> eventStore = new();
         SetupStoreProperties(eventStore, "database", "container", "entity");
 
         _ = eventStore
@@ -385,7 +391,7 @@ public class KeyValueEventStoreTests
             .Setup(s => s.GetAsync(3, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new EventState(event3));
 
-        var snapshotStore = new Mock<IKeyValueStore<long, EventState>>();
+        Mock<IKeyValueStore<long, EventState>> snapshotStore = new();
         _ = snapshotStore
             .Setup(s => s.AddOrUpdateAsync(2, It.IsAny<EventState>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync("123");
@@ -394,9 +400,9 @@ public class KeyValueEventStoreTests
             .Setup(s => s.GetAsync(2, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new EventState(snapshotEvent));
 
-        var snapshotCollectionStore = new Mock<IKeyValueStore<string, State<IEnumerable<long>>>>();
+        Mock<IKeyValueStore<string, State<IEnumerable<long>>>> snapshotCollectionStore = new();
 
-        var snapshotVersions = new List<long> { 2 };
+        List<long> snapshotVersions = [2];
         _ = snapshotCollectionStore
             .Setup(s => s.TryGetAsync("Versions", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new State<IEnumerable<long>>(snapshotVersions, null, null));
@@ -405,7 +411,7 @@ public class KeyValueEventStoreTests
             .Setup(s => s.SetAsync(It.IsAny<string>(), It.IsAny<State<IEnumerable<long>>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync("123");
 
-        var store = new KeyValueEventStore(
+        await using KeyValueEventStore store = new(
             eventStore.Object,
             snapshotStore.Object,
             snapshotCollectionStore.Object,
@@ -441,7 +447,7 @@ public class KeyValueEventStoreTests
     /// <returns>A test event message.</returns>
     private static EventMessage CreateEventMessage(long version, bool snapshot = false)
     {
-        var ev = new TestMessage($"EV{version}", $"The event number {version}", snapshot);
+        TestMessage ev = new($"EV{version}", $"The event number {version}", snapshot);
         return ev.CreateMessage(version);
     }
 

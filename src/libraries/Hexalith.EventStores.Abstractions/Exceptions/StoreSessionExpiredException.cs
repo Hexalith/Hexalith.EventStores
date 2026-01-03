@@ -33,7 +33,6 @@ public class StoreSessionExpiredException : Exception
     /// Initializes a new instance of the <see cref="StoreSessionExpiredException"/> class.
     /// </summary>
     public StoreSessionExpiredException()
-        : base()
     {
     }
 

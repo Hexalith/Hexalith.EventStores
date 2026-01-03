@@ -33,7 +33,6 @@ public class InvalidStoreSessionException : Exception
     /// Initializes a new instance of the <see cref="InvalidStoreSessionException"/> class.
     /// </summary>
     public InvalidStoreSessionException()
-        : base()
     {
     }
 

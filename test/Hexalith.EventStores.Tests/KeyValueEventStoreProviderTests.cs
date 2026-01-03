@@ -23,10 +23,10 @@ public class KeyValueEventStoreProviderTests
     /// Tests that constructor throws an ArgumentNullException when options is null.
     /// </summary>
     [Fact]
-    public void Constructor_NullOptions_ThrowsArgumentNullException()
+    public void ConstructorNullOptionsThrowsArgumentNullException()
     {
         // Arrange
-        var storage = new Mock<IKeyValueProvider>();
+        Mock<IKeyValueProvider> storage = new();
 
         // Act & Assert
         _ = Should.Throw<ArgumentNullException>(() => new KeyValueEventStoreProvider(null!, storage.Object, null));
@@ -36,10 +36,10 @@ public class KeyValueEventStoreProviderTests
     /// Tests that constructor throws an ArgumentNullException when storage is null.
     /// </summary>
     [Fact]
-    public void Constructor_NullStorage_ThrowsArgumentNullException()
+    public void ConstructorNullStorageThrowsArgumentNullException()
     {
         // Arrange
-        var options = new OptionsWrapper<EventStoreSettings>(new EventStoreSettings
+        OptionsWrapper<EventStoreSettings> options = new(new EventStoreSettings
         {
             DefaultDatabase = "TestDb",
             DefaultOpenTimeout = TimeSpan.FromSeconds(5),
@@ -55,21 +55,21 @@ public class KeyValueEventStoreProviderTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task OpenStoreAsync_WithDatabaseNameAndId_ReturnsOpenedEventStore()
+    public async Task OpenStoreAsyncWithDatabaseNameAndIdReturnsOpenedEventStore()
     {
         // Arrange
-        var options = new OptionsWrapper<EventStoreSettings>(new EventStoreSettings
+        OptionsWrapper<EventStoreSettings> options = new(new EventStoreSettings
         {
             DefaultDatabase = "DefaultDb",
             DefaultOpenTimeout = TimeSpan.FromSeconds(5),
             DefaultSessionTimeout = TimeSpan.FromMinutes(10),
         });
 
-        var eventStore = new Mock<IKeyValueStore<long, EventState>>();
-        var snapshotStore = new Mock<IKeyValueStore<long, EventState>>();
-        var snapshotCollectionStore = new Mock<IKeyValueStore<string, State<IEnumerable<long>>>>();
+        Mock<IKeyValueStore<long, EventState>> eventStore = new();
+        Mock<IKeyValueStore<long, EventState>> snapshotStore = new();
+        Mock<IKeyValueStore<string, State<IEnumerable<long>>>> snapshotCollectionStore = new();
 
-        var storageProvider = new Mock<IKeyValueProvider>();
+        Mock<IKeyValueProvider> storageProvider = new();
         _ = storageProvider
             .Setup(p => p.Create<long, EventState>("CustomDb", "TestName", "TestId"))
             .Returns(eventStore.Object);
@@ -80,7 +80,7 @@ public class KeyValueEventStoreProviderTests
             .Setup(p => p.Create<string, State<IEnumerable<long>>>("CustomDb__Snapshot_Index", "TestName", "TestId"))
             .Returns(snapshotCollectionStore.Object);
 
-        var provider = new KeyValueEventStoreProvider(options, storageProvider.Object, null);
+        KeyValueEventStoreProvider provider = new(options, storageProvider.Object, null);
 
         // Act
         IEventStore store = await provider.OpenStoreAsync("CustomDb", "TestName", "TestId", CancellationToken.None);
@@ -95,21 +95,21 @@ public class KeyValueEventStoreProviderTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task OpenStoreAsync_WithMetadata_ReturnsOpenedEventStore()
+    public async Task OpenStoreAsyncWithMetadataReturnsOpenedEventStore()
     {
         // Arrange
-        var options = new OptionsWrapper<EventStoreSettings>(new EventStoreSettings
+        OptionsWrapper<EventStoreSettings> options = new(new EventStoreSettings
         {
             DefaultDatabase = "DefaultDb",
             DefaultOpenTimeout = TimeSpan.FromSeconds(5),
             DefaultSessionTimeout = TimeSpan.FromMinutes(10),
         });
 
-        var eventStore = new Mock<IKeyValueStore<long, EventState>>();
-        var snapshotStore = new Mock<IKeyValueStore<long, EventState>>();
-        var snapshotCollectionStore = new Mock<IKeyValueStore<string, State<IEnumerable<long>>>>();
+        Mock<IKeyValueStore<long, EventState>> eventStore = new();
+        Mock<IKeyValueStore<long, EventState>> snapshotStore = new();
+        Mock<IKeyValueStore<string, State<IEnumerable<long>>>> snapshotCollectionStore = new();
 
-        var storageProvider = new Mock<IKeyValueProvider>();
+        Mock<IKeyValueProvider> storageProvider = new();
         _ = storageProvider
             .Setup(p => p.Create<long, EventState>("default", "EventStoreTest", "123"))
             .Returns(eventStore.Object);
@@ -120,9 +120,9 @@ public class KeyValueEventStoreProviderTests
             .Setup(p => p.Create<string, State<IEnumerable<long>>>("default__Snapshot_Index", "EventStoreTest", "123"))
             .Returns(snapshotCollectionStore.Object);
 
-        var provider = new KeyValueEventStoreProvider(options, storageProvider.Object, null);
+        KeyValueEventStoreProvider provider = new(options, storageProvider.Object, null);
 
-        var ev = new TestMessage("123", "Test Message 123", false);
+        TestMessage ev = new("123", "Test Message 123", false);
         EventMessage eventMessage = ev.CreateMessage();
 
         // Act
@@ -138,21 +138,21 @@ public class KeyValueEventStoreProviderTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task OpenStoreAsync_WithNameAndId_ReturnsOpenedEventStore()
+    public async Task OpenStoreAsyncWithNameAndIdReturnsOpenedEventStore()
     {
         // Arrange
-        var options = new OptionsWrapper<EventStoreSettings>(new EventStoreSettings
+        OptionsWrapper<EventStoreSettings> options = new(new EventStoreSettings
         {
             DefaultDatabase = "TestDb",
             DefaultOpenTimeout = TimeSpan.FromSeconds(5),
             DefaultSessionTimeout = TimeSpan.FromMinutes(10),
         });
 
-        var eventStore = new Mock<IKeyValueStore<long, EventState>>();
-        var snapshotStore = new Mock<IKeyValueStore<long, EventState>>();
-        var snapshotCollectionStore = new Mock<IKeyValueStore<string, State<IEnumerable<long>>>>();
+        Mock<IKeyValueStore<long, EventState>> eventStore = new();
+        Mock<IKeyValueStore<long, EventState>> snapshotStore = new();
+        Mock<IKeyValueStore<string, State<IEnumerable<long>>>> snapshotCollectionStore = new();
 
-        var storageProvider = new Mock<IKeyValueProvider>();
+        Mock<IKeyValueProvider> storageProvider = new();
         _ = storageProvider
             .Setup(p => p.Create<long, EventState>("TestDb", "TestName", "TestId"))
             .Returns(eventStore.Object);
@@ -163,7 +163,7 @@ public class KeyValueEventStoreProviderTests
             .Setup(p => p.Create<string, State<IEnumerable<long>>>("TestDb__Snapshot_Index", "TestName", "TestId"))
             .Returns(snapshotCollectionStore.Object);
 
-        var provider = new KeyValueEventStoreProvider(options, storageProvider.Object, null);
+        KeyValueEventStoreProvider provider = new(options, storageProvider.Object, null);
 
         // Act
         IEventStore store = await provider.OpenStoreAsync("TestName", "TestId", CancellationToken.None);
