@@ -406,3 +406,6 @@ FodyWeavers.xsd
 
 #Ignore vscode AI rules
 .github\instructions\codacy.instructions.md
+
+# Windows file name issue with nul
+nul
